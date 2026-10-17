@@ -16,3 +16,8 @@ build/
 # Logs
 *.log.DS_Store
 **/.DS_Store
+automation/playwright/allure-results/
+automation/playwright/test-results/
+automation/playwright/playwright-report/
+automation/api-tests/node_modules/
+backend/test-results/
