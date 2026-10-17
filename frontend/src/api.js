@@ -1,43 +1,38 @@
-export async function apiRequest(path, options = {}) {
-  const isFormData =
-    typeof FormData !== 'undefined' && options.body instanceof FormData;
+import axios from 'axios';
 
-  const baseHeaders = isFormData
-    ? {}
-    : {
-        'Content-Type': 'application/json',
-      };
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:1008';
 
-<<<<<<< HEAD
-  // Use full backend URL instead of relying on proxy
-  const fullUrl = path.startsWith('http') ? path : `http://localhost:1008${path}`;
-=======
-  // Use build-time Vite env `VITE_API_BASE` or fallback to localhost
-  const API_BASE = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE
-    ? import.meta.env.VITE_API_BASE
-    : 'http://localhost:1008';
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-  // Use full backend URL instead of relying on proxy
-  const fullUrl = path.startsWith('http') ? path : `${API_BASE}${path}`;
->>>>>>> 07905ae (Prepare for Render deployment: CORS, API base, env example, deployment README)
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-  const token =
-    typeof window !== 'undefined' ? window.localStorage.getItem('auth_token') : null;
-
-  const response = await fetch(fullUrl, {
-    ...options,
-    headers: {
-      ...baseHeaders,
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
-    },
-  });
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Request failed');
+// Exposing a named export so App.jsx can use apiRequest
+export const apiRequest = async (path, options = {}) => {
+  try {
+    const response = await api({
+      url: path,
+      method: options.method || 'GET',
+      data: options.body,
+    });
+    return response.data; // App.jsx expects the raw data back
+  } catch (error) {
+    const message = error.response?.data?.message || error.message;
+    throw new Error(message);
   }
+};
 
-  return data;
-}
+export default api;

@@ -1,0 +1,66 @@
+{
+  "info": {
+    "name": "Resume and Job Portal API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:1008" }
+  ],
+  "item": [
+    {
+      "name": "Step 1 - GET all jobs",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/jobs" },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "const j = pm.response.json();",
+              "pm.test('data is array', () => pm.expect(j.data).to.be.an('array'));",
+              "pm.collectionVariables.set('firstJobId', j.data[0]._id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Step 2 - GET one job by id",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/jobs/{{firstJobId}}" },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "const j = pm.response.json();",
+              "pm.test('id matches', () => pm.expect(j.data._id).to.eql(pm.collectionVariables.get('firstJobId')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Step 3 - PUT update job",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/jobs/{{firstJobId}}",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"jobTitle\": \"Updated by Newman {{$timestamp}}\", \"description\": \"Dynamic update test\", \"location\": \"Remote\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

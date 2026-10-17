@@ -22,28 +22,23 @@ const PORT = process.env.PORT || 1008;
 const HOST = process.env.HOST || '0.0.0.0';
 
 // Middleware
-<<<<<<< HEAD
-app.use(cors());
-=======
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 const corsOptions = {
   origin: process.env.FRONTEND_URL || '*',
   credentials: true,
 };
 app.use(cors(corsOptions));
->>>>>>> 07905ae (Prepare for Render deployment: CORS, API base, env example, deployment README)
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(auditLogger);
 
-// Additional feature routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
+// Apply routes
 app.use('/api/profile', profileRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/skills', skillRoutes);
+
 // Serve static files from the root directory
 app.use(express.static(path.join(__dirname, '..')));
 
@@ -56,7 +51,6 @@ if (fs.existsSync(frontendDistDir)) {
 }
 
 // Create uploads directory if it doesn't exist
-
 const uploadsDir = path.join(__dirname, 'uploads', 'resumes');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -72,6 +66,8 @@ app.use('/api/resumes', resumeRoutes);
 
 // FEATURE 02: Job Posting & Management Routes (includes FEATURE 03: Job Applications)
 app.use('/api/jobs', jobPostingRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 // FEATURE: Subscriptions Routes
 app.use('/api/subscriptions', subscriptionsRoutes);
