@@ -21,3 +21,4 @@ automation/playwright/test-results/
 automation/playwright/playwright-report/
 automation/api-tests/node_modules/
 backend/test-results/
+automation/playwright/live-shots.js
