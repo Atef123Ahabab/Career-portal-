@@ -66,6 +66,20 @@ backend/
 │   └── jobPostingRoutes.js     # Job posting API routes
 └── uploads/
     └── resumes/                 # Uploaded files storage
+
+automation/
+├── README-automation.md
+├── api-tests/
+│   ├── job-portal-api.postman_collection.json
+│   └── newman-report.html
+└── playwright/
+    ├── playwright.config.js
+    ├── pages/          # LoginPage, DashboardPage, JobManagementPage
+    ├── tests/          # 01-invalid-login.spec.js, 02-register-login-create-job.spec.js, 03-e2e-apply-for-job.spec.js
+    └── screenshots/    # q1–q3 PNGs
+
+portfolio/              # 5 committed test screenshots
+portfolio-live/         # 5 committed live website screenshots
 ```
 
 ## Installation
@@ -364,4 +378,98 @@ For issues or questions, check:
 - **Port**: 1008
 - **Framework**: Node.js + Express
 - **Database**: MongoDB
-- **Status**: Complete with all APIs and documentation
+- **Status**: Complete — backend, frontend, Playwright UI tests (3/3), Postman/Newman API tests (3/3), and full documentation
+
+---
+
+## 📖 Project Journey — From Day One to Submission
+
+This project was developed in five phases:
+
+### Phase 1 — Backend API (Features 01, 02, 04, 05)
+- Built 22 REST endpoints in Node.js + Express + MongoDB
+- Models: `Resume.js`, `JobPosting.js`
+- Controllers: `resumeController.js`, `jobPostingController.js`
+- Routes: `resumeRoutes.js`, `jobPostingRoutes.js`
+- Port `1008`, JWT authentication, Multer file upload for resumes
+- Audit logging middleware captures all write actions
+
+### Phase 2 — Frontend (React + Vite)
+- Built 4 admin tabs: Jobs, Fraud & Spam, Audit Logs, Applications
+- Vite proxy → backend on `1008`, frontend on `5173`
+- Custom design system, dark theme, tabbed navigation
+- Bug surfaced during UI work: `requiredSkills` and `qualifications` use
+  `textarea` in the Create form but `input` in the Edit form → broke
+  my Playwright selectors initially
+
+### Phase 3 — UI Automation (Playwright + POM)
+- Chose Playwright because it ships with a real Chromium browser
+- Built Page Object Model: `LoginPage.js`, `DashboardPage.js`, `JobManagementPage.js`
+- Wrote 3 sequential tests (`workers: 1`) covering:
+  - **Q1** — Invalid login rejection
+  - **Q2** — Register → login → create job (verifies `POST /api/jobs/create → 201`)
+  - **Q3** — Register → login → select job → submit application
+- All 3 pass in **17.3s total** (`npx playwright test --reporter=html`)
+- Committed 4 screenshots to `automation/playwright/screenshots/`
+
+### Phase 4 — API Automation (Postman + Newman)
+- Built Postman collection: `automation/api-tests/job-portal-api.postman_collection.json`
+- 3 requests with 5 assertions:
+  - `GET /api/jobs → 200`, response is array
+  - `GET /api/jobs/:id → 200`, id matches
+  - `PUT /api/jobs/:id → 200`
+- Generated HTML report: `newman-report.html` (`newman-reporter-htmlextra`)
+- Result: **3/3 requests, 5/5 assertions, avg 36ms**
+
+### Phase 5 — Bug Discovery & Documentation
+- **Q3 discovered a real security gap:** `PUT /api/jobs/:jobId/apply`
+  returns `401 "Missing auth token"` because `frontend/src/api.js`
+  does not attach the JWT to that endpoint.
+- The error surfaces in the UI (`.error` element) — the test correctly
+  captured both the network log and the UI error message.
+- Documented in this README under **Automation & Testing → Bug Found**.
+
+### Final Deliverables
+
+| Deliverable | Status | Location |
+|-------------|--------|----------|
+| Backend (22 endpoints) | ✅ | `backend/` |
+| Frontend (React + Vite) | ✅ | `frontend/` |
+| Playwright UI tests (Q1, Q2, Q3) | ✅ 3/3 passing | `automation/playwright/tests/` |
+| Postman collection | ✅ | `automation/api-tests/job-portal-api.postman_collection.json` |
+| Newman HTML report | ✅ 3/3 green | `automation/api-tests/newman-report.html` |
+| Test screenshots | ✅ 5 | `portfolio/` |
+| Live website screenshots | ✅ 5 | `portfolio-live/` |
+| README | ✅ | (this file) |
+
+### Commits on `main`
+
+```
+6d4e791  docs: add 5 live website portfolio screenshots
+c58851d  docs: add newman report portfolio screenshot
+cddfbd1  docs: add 4 portfolio screenshots
+2637850  chore: ignore backend test-results
+82b8033  docs: update README with automation section and 401 error handling
+0de8137  chore: stop tracking generated Playwright artifacts
+8295b13  Add Playwright UI tests (3 passing) + Postman API tests + fix backend routes
+```
+
+---
+
+## 📸 Screenshots
+
+### Test Evidence — `portfolio/`
+![Invalid Login Test](portfolio/01-invalid-login.png)
+![Dashboard After Register](portfolio/02-dashboard-after-register.png)
+![Job Created via UI](portfolio/03-job-created.png)
+![Application Submitted](portfolio/04-application-submitted.png)
+![Newman Report](portfolio/05-newman-report.png)
+
+### Live Website — `portfolio-live/`
+![Login Page](portfolio-live/01-login-page.png)
+![Dashboard](portfolio-live/02-dashboard.png)
+![Job Management](portfolio-live/03-job-management.png)
+![Audit Logs](portfolio-live/04-audit-logs.png)
+![Fraud & Spam](portfolio-live/05-fraud-spam.png)
+
+---
