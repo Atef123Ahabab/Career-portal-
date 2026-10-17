@@ -190,7 +190,7 @@ The production output is generated in `frontend/dist` and is served by backend u
 1. **Import Collection**
    - Open Postman
    - Click "Import"
-   - Select `Resume_Job_Portal_API.postman_collection.json`
+   - Select `automation/api-tests/job-portal-api.postman_collection.json`
 
 2. **Set Up Variables**
    - Collection → Variables
@@ -199,6 +199,44 @@ The production output is generated in `frontend/dist` and is served by backend u
 3. **Test Endpoints**
    - Follow the logical order in the collection
    - Check responses and status codes
+
+## Automation & Testing
+
+### UI Tests (Playwright)
+
+Located in `automation/playwright/`. Uses Page Object Model (`pages/LoginPage.js`, `pages/DashboardPage.js`, `pages/JobManagementPage.js`) with sequential execution (`workers: 1`).
+
+| Test | Description | Status |
+|------|-------------|--------|
+| **Q1** — Invalid Login | Verifies invalid credentials are rejected | ✅ Passing |
+| **Q2** — Register → Create Job | Registers, logs in, creates a job (`POST /api/jobs/create → 201`) | ✅ Passing |
+| **Q3** — Full E2E Apply | Registers, logs in, selects a job, submits application | ✅ Passing (surfaces `401`) |
+
+Run:
+```bash
+cd automation/playwright
+npx playwright test --reporter=html
+npx playwright show-report
+```
+
+Screenshots: `automation/playwright/screenshots/`
+
+### API Tests (Postman / Newman)
+
+Collection: `automation/api-tests/job-portal-api.postman_collection.json`
+
+```bash
+cd automation/api-tests
+newman run job-portal-api.postman_collection.json --reporters cli,htmlextra --reporter-htmlextra-export newman-report.html
+```
+
+Result: 3/3 requests, 5/5 assertions passing. HTML report: `automation/api-tests/newman-report.html`.
+
+### Bug Found by Automation
+
+The **Q3 E2E test** surfaced a real security gap: `PUT /api/jobs/:jobId/apply` returns **`401 "Missing auth token"`** because the frontend `api.js` interceptor does not attach the JWT to that endpoint.
+
+---
 
 ## Example Requests
 
@@ -297,6 +335,7 @@ All responses follow this format:
 ## Error Handling
 
 - **400**: Bad Request (validation error)
+- **401**: Unauthorized (missing or invalid auth token)
 - **404**: Not Found
 - **500**: Server Error
 
@@ -316,7 +355,7 @@ All responses follow this format:
 
 For issues or questions, check:
 - API Documentation: `CSE471_Assignment_API_Documentation.txt`
-- Postman Collection: `Resume_Job_Portal_API.postman_collection.json`
+- Postman Collection: `automation/api-tests/job-portal-api.postman_collection.json`
 
 ## Assignment Details
 
